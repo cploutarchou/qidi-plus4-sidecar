@@ -1,0 +1,76 @@
+services:
+  # go2rtc - WebRTC streaming with hardware acceleration
+  go2rtc:
+    build:
+      context: ./go2rtc
+      dockerfile: Dockerfile.nvenc
+    image: qidi/go2rtc-nvenc:latest
+    container_name: qidi_go2rtc
+    restart: unless-stopped
+    network_mode: host
+    runtime: nvidia
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/dri:/dev/dri
+    volumes:
+      - /dev/v4l:/dev/v4l:ro
+      - ./go2rtc/go2rtc.yaml:/config/go2rtc.yaml:ro
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility
+      - TZ=${TZ:-UTC}
+    privileged: true
+
+  # Moonraker Prometheus Exporter
+  moonraker-exporter:
+    image: ghcr.io/scross01/prometheus-klipper-exporter:latest
+    container_name: qidi_moonraker_exporter
+    restart: unless-stopped
+    ports:
+      - "9101:9101"
+    environment:
+      - KLIPPER_EXPORTER_MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
+      - KLIPPER_EXPORTER_MOONRAKER_PORT=7125
+      - TZ=${TZ:-UTC}
+
+  # External UI - Much faster than the printer's internal web server
+  mainsail:
+    image: ghcr.io/mainsail-crew/mainsail:latest
+    container_name: qidi_mainsail
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./mainsail/config.json:/usr/share/nginx/html/config.json:rw
+      - ./mainsail/nginx/default.conf:/etc/nginx/conf.d/default.conf:rw
+    environment:
+      - PRINTER_IP=${PRINTER_IP:-192.168.68.35}
+      - HOST_IP=${HOST_IP:-192.168.68.26}
+      - TZ=${TZ:-UTC}
+    command: >
+      /bin/bash -c "
+      envsubst '$$PRINTER_IP,$$HOST_IP' < /etc/nginx/conf.d/default.conf > /tmp/default.conf.tmp &&
+      cat /tmp/default.conf.tmp > /etc/nginx/conf.d/default.conf &&
+      chmod 644 /etc/nginx/conf.d/default.conf &&
+      sed -i 's|192.168.68.26|'$$HOST_IP'|g' /usr/share/nginx/html/config.json &&
+      chmod 644 /usr/share/nginx/html/config.json &&
+      nginx -g 'daemon off;'
+      "
+
+  # Moonraker-Obico - AI failure detection for Klipper printers
+  moonraker-obico:
+    image: ghcr.io/thespaghettidetective/moonraker-obico:latest
+    container_name: qidi_moonraker_obico
+    restart: unless-stopped
+    volumes:
+      - ./obico/moonraker-obico:/app/moonraker-obico
+      - ./obico/moonraker-obico.cfg:/opt/printer_data/config/moonraker-obico.cfg:rw
+    environment:
+      - TZ=${TZ:-UTC}
+      - MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
+      - MOONRAKER_PORT=7125
+      - OBICO_SERVER_URL=https://app.obico.io
+
+networks:
+  default:
+    name: qidi_plus4_network

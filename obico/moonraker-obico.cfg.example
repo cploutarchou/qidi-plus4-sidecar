@@ -1,0 +1,11 @@
+[server]
+url = https://app.obico.io
+auth_token = CHANGE_ME_TO_YOUR_OBICO_TOKEN
+
+[webcam]
+snapshot_url = http://HOST_IP:1984/api/frame.jpeg?src=qidi_plus4
+stream_url = http://HOST_IP:1984/api/stream.mjpeg?src=qidi_plus4
+
+[moonraker]
+host = PRINTER_IP
+port = 7125

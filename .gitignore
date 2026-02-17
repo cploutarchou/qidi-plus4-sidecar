@@ -1,0 +1,72 @@
+# Environment variables and secrets
+.env
+.env.local
+.env*.local
+
+# API keys and tokens
+auth_token
+secret_key
+api_key
+*credentials*
+*secret*
+*token*
+
+# Personal configuration with IP addresses
+obico/moonraker-obico.cfg
+mainsail/config.json
+mainsail/nginx/default.conf
+go2rtc/go2rtc.yaml
+
+# Sensitive data files
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# Local data and database files
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Docker artifacts
+.dockerignore
+docker-compose.override.yml
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# Node modules (if applicable)
+node_modules/
+npm-debug.log
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

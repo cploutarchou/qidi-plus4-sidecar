@@ -1,0 +1,22 @@
+FROM alexxit/go2rtc:latest AS go2rtc
+FROM jrottenberg/ffmpeg:6.1-nvidia AS ffmpeg
+
+FROM ubuntu:22.04
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ca-certificates tini libgomp1 libexpat1 \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY --from=go2rtc /usr/local/bin/go2rtc /usr/local/bin/go2rtc
+COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
+COPY --from=ffmpeg /usr/local/lib/ /usr/local/lib/
+COPY --from=ffmpeg /usr/local/cuda/targets/x86_64-linux/lib/ /usr/local/cuda/targets/x86_64-linux/lib/
+COPY --from=ffmpeg /usr/local/cuda/lib64/ /usr/local/cuda/lib64/
+
+RUN mkdir -p /config
+
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/cuda/targets/x86_64-linux/lib:/usr/local/cuda/lib64
+
+ENTRYPOINT ["/usr/bin/tini","--"]
+CMD ["go2rtc","-config","/config/go2rtc.yaml"]

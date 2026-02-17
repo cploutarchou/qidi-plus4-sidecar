@@ -1,0 +1,49 @@
+# go2rtc configuration for QIDI Plus 4
+# WebRTC and streaming server
+#
+# Copy this file to go2rtc.yaml before running docker-compose up
+# See: https://github.com/AlexxIT/go2rtc
+
+streams:
+  qidi_plus4:
+    # Direct MJPEG capture from USB webcam at high quality
+    # NOTE: Ensure /dev/video0 is mapped correctly in docker-compose.yml
+    # - input_format: Use 'mjpeg' if your camera supports it, otherwise 'yuyv422'
+    # - video_size: Resolution of your camera (e.g., 1920x1080, 1280x720)
+    # - framerate: Lower FPS improves stability on USB cameras (25 recommended)
+    # - i /dev/video0: USB camera device (verify with: ls -la /dev/video*)
+    - "exec:ffmpeg -hide_banner -loglevel error -f v4l2 -input_format mjpeg -video_size 1920x1080 -framerate 25 -i /dev/video0 -c:v mjpeg -q:v 2 -f mjpeg -"
+    
+  qidi_plus4_h264:
+    # H.264 stream for WebRTC/RTSP with enhanced quality (NVIDIA NVENC hardware acceleration)
+    # REQUIREMENTS:
+    #  - NVIDIA GPU with NVENC support on Docker host
+    #  - nvidia/cuda base image in go2rtc Dockerfile
+    #  - GPU device mapping in docker-compose.yml (/dev/dri/*, privileged mode)
+    # CONFIG PARAMETERS:
+    #  - preset: p1 (fastest) to p7 (slowest, better quality) - p4 recommended for balance
+    #  - tune: ll (low latency) or hq (high quality) - ll for real-time streaming
+    #  - cq: 0-51 (lower = better quality) - 19 is balanced, use 15-20 for high quality
+    #  - b:v: Bitrate (e.g., 16M) - increase for higher quality, decrease for bandwidth
+    #  - maxrate: Maximum bitrate (e.g., 20M) - peak bitrate for rate control
+    #  - bufsize: Buffer size for rate control (e.g., 32M)
+    # If NVIDIA GPU not available, change codec from 'h264_nvenc' to 'libx264' (CPU fallback)
+    - "exec:ffmpeg -hide_banner -loglevel error -rtsp_transport tcp -i rtsp://127.0.0.1:8554/qidi_plus4 -c:v h264_nvenc -preset p4 -tune ll -rc vbr_hq -cq 19 -b:v 16M -maxrate 20M -bufsize 32M -g 60 -bf 0 -profile:v high -pix_fmt yuv420p -f h264 -"
+
+# RTSP server (camera access via: rtsp://localhost:8554/qidi_plus4 or rtsp://localhost:8554/qidi_plus4_h264)
+rtsp:
+  listen: ":8554"
+
+# WebRTC server (low-latency browser streaming)
+webrtc:
+  listen: ":8555"
+
+# HTTP API server (used by Mainsail and Obico for stream access)
+# Access snapshots: http://localhost:1984/api/frame.jpeg?src=qidi_plus4
+# Access MJPEG: http://localhost:1984/api/stream.mjpeg?src=qidi_plus4
+api:
+  listen: ":1984"
+
+# Logging level: debug, info, warn, error
+log:
+  level: info
