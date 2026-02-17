@@ -103,13 +103,13 @@ Edit `obico/moonraker-obico.cfg` and update:
 
 All `.example` template files are included in the repository. Copy them to create actual config files:
 
-| File | Example Template | Status | Notes |
-| ---- | ---- | ------ | ----- |
-| `.env` | `.env.example` | ✅ Manual | User fills in PRINTER_IP, HOST_IP, TZ |
-| `go2rtc/go2rtc.yaml` | `go2rtc/go2rtc.yaml.example` | ✅ Manual | Copy from .example, adjust camera device if needed |
-| `mainsail/config.json` | `mainsail/config.json.example` | ⚙️ Auto | Auto-substituted at container startup |
-| `mainsail/nginx/default.conf` | `mainsail/nginx/default.conf.example` | ⚙️ Auto | Auto-substituted at container startup |
-| `obico/moonraker-obico.cfg` | `obico/moonraker-obico.cfg.example` | ✅ Manual | Copy from .example, fill in auth token |
+| File                          | Example Template                      | Status   | Notes                                              |
+| ----------------------------- | ------------------------------------- | -------- | -------------------------------------------------- |
+| `.env`                        | `.env.example`                        | ✅ Manual | User fills in PRINTER_IP, HOST_IP, TZ              |
+| `go2rtc/go2rtc.yaml`          | `go2rtc/go2rtc.yaml.example`          | ✅ Manual | Copy from .example, adjust camera device if needed |
+| `mainsail/config.json`        | `mainsail/config.json.example`        | ⚙️ Auto   | Auto-substituted at container startup              |
+| `mainsail/nginx/default.conf` | `mainsail/nginx/default.conf.example` | ⚙️ Auto   | Auto-substituted at container startup              |
+| `obico/moonraker-obico.cfg`   | `obico/moonraker-obico.cfg.example`   | ✅ Manual | Copy from .example, fill in auth token             |
 
 **Manual files** require copying and optionally editing. **Auto files** are processed by docker-compose.yml each time containers start.
 
