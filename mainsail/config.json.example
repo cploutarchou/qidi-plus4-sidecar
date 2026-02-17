@@ -1,0 +1,10 @@
+{
+  "apiUrl": "/",
+  "socketUrl": "/websocket",
+  "title": "QIDI Plus 4",
+  "camera": {
+    "dashboardLayout": "top",
+    "streamUrl": "http://${HOST_IP}:1984/api/stream.mjpeg?src=qidi_plus4",
+    "snapshotUrl": "http://${HOST_IP}:1984/api/frame.jpeg?src=qidi_plus4"
+  }
+}

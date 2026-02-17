@@ -17,6 +17,14 @@ mainsail/config.json
 mainsail/nginx/default.conf
 go2rtc/go2rtc.yaml
 
+# Allow example templates to be committed
+!mainsail/
+!mainsail/nginx/
+!mainsail/config.json.example
+!mainsail/nginx/default.conf.example
+!go2rtc/go2rtc.yaml.example
+!obico/moonraker-obico.cfg.example
+
 # Sensitive data files
 *.key
 *.pem
