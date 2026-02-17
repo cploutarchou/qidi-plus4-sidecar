@@ -22,6 +22,8 @@ This project provides a complete containerized solution for your QIDI Plus 4 pri
 
 **Before running the containers, you must create configuration files from the provided examples.** All sensitive configuration is excluded from git (see `.gitignore`) to protect credentials and IP addresses.
 
+✅ **All `.example` template files are included in this repository** — just copy them and customize for your network!
+
 ### Step 1: Create Environment File
 
 ```bash
@@ -46,7 +48,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ### Step 2: Create Configuration Files from Examples
 
-All the following files must be created. Templates with detailed documentation are provided:
+All the following files must be created. **Example templates with detailed documentation are included in the repository:**
 
 #### 2.1 go2rtc Stream Configuration
 
@@ -97,18 +99,36 @@ Edit `obico/moonraker-obico.cfg` and update:
 - `${HOST_IP}` - Docker host's IP address
 
 ### Step 3: Summary of What Was Configured
+### Step 3: Summary of Configuration Files
 
-| File                          | Status   | Notes                                              |
-| ----------------------------- | -------- | -------------------------------------------------- |
-| `.env`                        | ✅ Manual | User fills in PRINTER_IP, HOST_IP, TZ              |
-| `go2rtc/go2rtc.yaml`          | ✅ Manual | Copy from .example, adjust camera device if needed |
-| `mainsail/nginx/default.conf` | ⚙️ Auto   | Automatically substituted at container startup     |
-| `mainsail/config.json`        | ⚙️ Auto   | Automatically substituted at container startup     |
-| `obico/moonraker-obico.cfg`   | ✅ Manual | Copy from .example, fill in auth token             |
+All `.example` template files are included in the repository. Copy them to create actual config files:
 
-**Manual files** need one-time setup. **Auto files** are processed by docker-compose.yml each time containers start.
+| File | Example Template | Status | Notes |
+| ---- | ---- | ------ | ----- |
+| `.env` | `.env.example` | ✅ Manual | User fills in PRINTER_IP, HOST_IP, TZ |
+| `go2rtc/go2rtc.yaml` | `go2rtc/go2rtc.yaml.example` | ✅ Manual | Copy from .example, adjust camera device if needed |
+| `mainsail/config.json` | `mainsail/config.json.example` | ⚙️ Auto | Auto-substituted at container startup |
+| `mainsail/nginx/default.conf` | `mainsail/nginx/default.conf.example` | ⚙️ Auto | Auto-substituted at container startup |
+| `obico/moonraker-obico.cfg` | `obico/moonraker-obico.cfg.example` | ✅ Manual | Copy from .example, fill in auth token |
 
-### Step 4: Verify Configuration
+**Manual files** require copying and optionally editing. **Auto files** are processed by docker-compose.yml each time containers start.
+
+### Step 4: Quick Copy Command (Optional)
+
+To copy all `.example` files at once:
+
+```bash
+# Copy all example templates
+cp .env.example .env
+cp go2rtc/go2rtc.yaml.example go2rtc/go2rtc.yaml
+cp mainsail/config.json.example mainsail/config.json
+cp mainsail/nginx/default.conf.example mainsail/nginx/default.conf
+cp obico/moonraker-obico.cfg.example obico/moonraker-obico.cfg
+```
+
+Then edit the **manual** files to add your values.
+
+### Step 5: Verify Configuration
 
 Before starting containers, verify all files are created:
 
