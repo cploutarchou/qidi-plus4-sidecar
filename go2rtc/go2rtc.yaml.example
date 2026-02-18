@@ -10,9 +10,9 @@ streams:
     # NOTE: Ensure /dev/video0 is mapped correctly in docker-compose.yml
     # - input_format: Use 'mjpeg' if your camera supports it, otherwise 'yuyv422'
     # - video_size: Resolution of your camera (e.g., 1920x1080, 1280x720)
-    # - framerate: Lower FPS improves stability on USB cameras (25 recommended)
+    # - framerate: Lower FPS improves stability on USB cameras (25 recommended, 30 for better motion)
     # - i /dev/video0: USB camera device (verify with: ls -la /dev/video*)
-    - "exec:ffmpeg -hide_banner -loglevel error -f v4l2 -input_format mjpeg -video_size 1920x1080 -framerate 25 -i /dev/video0 -c:v mjpeg -q:v 2 -f mjpeg -"
+    - "exec:ffmpeg -hide_banner -loglevel error -f v4l2 -input_format mjpeg -video_size 1920x1080 -framerate 30 -i /dev/video0 -c:v mjpeg -q:v 2 -f mjpeg -"
     
   qidi_plus4_h264:
     # H.264 stream for WebRTC/RTSP with enhanced quality (NVIDIA NVENC hardware acceleration)

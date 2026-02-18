@@ -42,12 +42,13 @@ services:
       - "8080:80"
     volumes:
       - ./mainsail/config.json:/usr/share/nginx/html/config.json:rw
-      - ./mainsail/nginx/default.conf:/etc/nginx/conf.d/default.conf:rw
+      - ./mainsail/nginx/default.conf:/etc/nginx/conf.d/default.conf.template:ro
       - ./docker/mainsail-entrypoint.sh:/docker-entrypoint.sh:ro
     environment:
       - PRINTER_IP=${PRINTER_IP:-192.168.68.35}
       - HOST_IP=${HOST_IP:-192.168.68.26}
       - TZ=${TZ:-UTC}
+    entrypoint: /docker-entrypoint.sh
 
   # Moonraker-Obico - AI failure detection for Klipper printers
   moonraker-obico:
