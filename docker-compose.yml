@@ -8,6 +8,10 @@ services:
     container_name: qidi_go2rtc
     restart: unless-stopped
     network_mode: host
+    ports:
+      - "8554:8554" # RTSP server
+      - "8555:8555" # WebRTC server
+      - "1984:1984" # HTTP API server
     runtime: nvidia
     devices:
       - /dev/video0:/dev/video0
