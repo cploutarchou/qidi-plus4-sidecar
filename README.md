@@ -206,6 +206,8 @@ All IP addresses are parameterized with safe defaults:
 
 ## 📹 Camera Setup
 
+Windows-specific instructions: `docs/WINDOWS_SETUP.md`
+
 ### For Mainsail:
 1. Open http://localhost:8080
 2. Camera feed displays at top of dashboard
