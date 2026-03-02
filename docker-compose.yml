@@ -4,14 +4,13 @@ services:
     build:
       context: ./go2rtc
       dockerfile: Dockerfile.nvenc
+      args:
+        - GO2RTC_VERSION=1.9.4
+        - FFMPEG_VERSION=6.1
     image: qidi/go2rtc-nvenc:latest
     container_name: qidi_go2rtc
     restart: unless-stopped
     network_mode: host
-    ports:
-      - "8554:8554" # RTSP server
-      - "8555:8555" # WebRTC server
-      - "1984:1984" # HTTP API server
     runtime: nvidia
     devices:
       - /dev/video0:/dev/video0
@@ -23,7 +22,41 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility
       - TZ=${TZ:-UTC}
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:1984/api",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, video]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=streaming"
+      - "com.qidi.description=WebRTC streaming with hardware acceleration"
 
   # Moonraker Prometheus Exporter
   moonraker-exporter:
@@ -32,10 +65,47 @@ services:
     restart: unless-stopped
     ports:
       - "9101:9101"
+    networks:
+      - qidi_network
     environment:
       - KLIPPER_EXPORTER_MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
       - KLIPPER_EXPORTER_MOONRAKER_PORT=7125
       - TZ=${TZ:-UTC}
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9101/metrics",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=monitoring"
+      - "com.qidi.description=Prometheus metrics exporter for Moonraker"
 
   # External UI - Much faster than the printer's internal web server
   mainsail:
@@ -44,6 +114,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"
+    networks:
+      - qidi_network
     volumes:
       - ./mainsail/config.json:/usr/share/nginx/html/config.json:rw
       - ./mainsail/nginx/default.conf:/etc/nginx/conf.d/default.conf.template:ro
@@ -53,12 +125,46 @@ services:
       - HOST_IP=${HOST_IP:-192.168.68.26}
       - TZ=${TZ:-UTC}
     entrypoint: /docker-entrypoint.sh
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:80/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=ui"
+      - "com.qidi.description=Mainsail web interface for printer control"
 
   # Moonraker-Obico - AI failure detection for Klipper printers
   moonraker-obico:
     image: ghcr.io/thespaghettidetective/moonraker-obico:latest
     container_name: qidi_moonraker_obico
     restart: unless-stopped
+    networks:
+      - qidi_network
     volumes:
       - ./obico/moonraker-obico:/app/moonraker-obico
       - ./obico/moonraker-obico.cfg:/opt/printer_data/config/moonraker-obico.cfg:rw
@@ -67,7 +173,35 @@ services:
       - MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
       - MOONRAKER_PORT=7125
       - OBICO_SERVER_URL=https://app.obico.io
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f moonraker-obico || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=monitoring"
+      - "com.qidi.description=AI-powered print failure detection"
 
 networks:
-  default:
+  qidi_network:
     name: qidi_plus4_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

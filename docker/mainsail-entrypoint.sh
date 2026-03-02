@@ -24,7 +24,7 @@ sed -e "s/\${PRINTER_IP:-[^}]*}/${PRINTER_IP}/g" \
 
 # Show debug info  
 echo "Sample of processed configuration:" >&2
-head -20 /etc/nginx/conf.d.processed/default.conf | grep -E "(server|proxy_set_header Host)" >&2
+head -20 /etc/nginx/conf.d.processed/default.conf | grep -E "(server|proxy_set_header Host)" >&2 || true
 
 # Copy the processed config directly to the location nginx will load
 echo "Copying processed config to /etc/nginx/conf.d/..." >&2
