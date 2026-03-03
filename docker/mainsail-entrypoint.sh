@@ -6,9 +6,11 @@ echo "=== Custom Entrypoint Started ===" >&2
 # Set default values if not provided
 PRINTER_IP="${PRINTER_IP:-192.168.68.35}"
 HOST_IP="${HOST_IP:-192.168.68.26}"
+CAMERA_MODE="${CAMERA_MODE:-unknown}"
 
 echo "PRINTER_IP: ${PRINTER_IP}" >&2
 echo "HOST_IP: ${HOST_IP}" >&2
+echo "CAMERA_MODE: ${CAMERA_MODE}" >&2
 
 # Create processed config directory
 mkdir -p /etc/nginx/conf.d.processed
@@ -20,6 +22,8 @@ sed -e "s/\${PRINTER_IP:-[^}]*}/${PRINTER_IP}/g" \
     -e "s/\${PRINTER_IP}/${PRINTER_IP}/g" \
     -e "s/\${HOST_IP:-[^}]*}/${HOST_IP}/g" \
     -e "s/\${HOST_IP}/${HOST_IP}/g" \
+    -e "s/\${CAMERA_MODE:-[^}]*}/${CAMERA_MODE}/g" \
+    -e "s/\${CAMERA_MODE}/${CAMERA_MODE}/g" \
     /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d.processed/default.conf
 
 # Show debug info  

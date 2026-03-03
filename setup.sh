@@ -6,6 +6,34 @@ set -e
 
 echo "Setting up QIDI Plus 4 Sidecar..."
 
+# Platform guardrails: Linux only, supports both ARM64 (production) and x86_64 (dev/test)
+if [ "$(uname -s)" != "Linux" ]; then
+    echo "✗ Unsupported OS: $(uname -s)"
+    echo "  This project supports Linux only (on ARM64 Raspberry Pi 4/5 or x86_64 machines)."
+    exit 1
+fi
+
+ARCH="$(uname -m)"
+if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+    ARCH_TYPE="ARM64 (Raspberry Pi 4/5)"
+elif [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
+    ARCH_TYPE="x86_64 (development/testing)"
+else
+    echo "✗ Unsupported architecture: $ARCH"
+    echo "  This project supports ARM64 (Raspberry Pi 4/5) or x86_64 (Linux)."
+    exit 1
+fi
+
+MEM_KB="$(grep MemTotal /proc/meminfo | awk '{print $2}')"
+MIN_MEM_KB=$((4 * 1024 * 1024))
+if [ -z "$MEM_KB" ] || [ "$MEM_KB" -lt "$MIN_MEM_KB" ]; then
+    echo "✗ Insufficient RAM: detected ${MEM_KB:-0} KB"
+    echo "  Minimum required RAM is 4GB."
+    exit 1
+fi
+
+echo "✓ Platform check passed: Linux $ARCH_TYPE with >=4GB RAM"
+
 # Fix mainsail config.json if it's a directory (created by Docker)
 if [ -d "mainsail/config.json" ]; then
     echo "Fixing mainsail/config.json (removing directory created by Docker)..."

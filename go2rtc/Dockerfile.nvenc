@@ -1,74 +1,19 @@
 # syntax=docker/dockerfile:1
 
-# Build arguments for version pinning
-ARG GO2RTC_VERSION=1.9.4
-ARG FFMPEG_VERSION=6.1
-ARG UBUNTU_VERSION=22.04
-
-# Stage 1: Get go2rtc binary
-FROM alexxit/go2rtc:${GO2RTC_VERSION} AS go2rtc
-
-# Stage 2: Get ffmpeg with NVIDIA support
-FROM jrottenberg/ffmpeg:${FFMPEG_VERSION}-nvidia AS ffmpeg
-
-# Stage 3: Final runtime image
-FROM ubuntu:${UBUNTU_VERSION}
+# Linux ARM-focused base image for Raspberry Pi 4/5
+ARG GO2RTC_VERSION=latest
+FROM alexxit/go2rtc:${GO2RTC_VERSION}
 
 LABEL maintainer="QIDI Plus 4 Sidecar"
-LABEL description="go2rtc with NVIDIA NVENC hardware acceleration"
+LABEL description="go2rtc container for Linux ARM devices (Raspberry Pi 4/5)"
 LABEL org.opencontainers.image.source="https://github.com/cploutarchou/qidi-plus4-sidecar"
 
-# Install runtime dependencies in a single layer
-RUN apt-get update \
-	&& apt-get install -y --no-install-recommends \
-		ca-certificates \
-		tini \
-		libgomp1 \
-		libexpat1 \
-		wget \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Copy binaries from build stages
-COPY --from=go2rtc /usr/local/bin/go2rtc /usr/local/bin/go2rtc
-COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
-COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
-COPY --from=ffmpeg /usr/local/lib/ /usr/local/lib/
-COPY --from=ffmpeg /usr/local/cuda/targets/x86_64-linux/lib/ /usr/local/cuda/targets/x86_64-linux/lib/
-COPY --from=ffmpeg /usr/local/cuda/lib64/ /usr/local/cuda/lib64/
-
-# Copy entrypoint script
+# Optional custom entrypoint that logs missing video device errors
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh
 
-# Set up directories and permissions
-RUN mkdir -p /config \
-	&& chmod 755 /usr/local/bin/go2rtc /usr/local/bin/ffmpeg /usr/local/bin/ffprobe /usr/local/bin/entrypoint.sh
-
-# Create non-root user for security
-RUN groupadd -r -g 1000 go2rtc \
-	&& useradd -r -u 1000 -g go2rtc -s /bin/false -M -d /config go2rtc \
-	&& chown -R go2rtc:go2rtc /config
-
-# Set environment variables
-ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/cuda/targets/x86_64-linux/lib:/usr/local/cuda/lib64
-ENV PATH=/usr/local/bin:$PATH
-
-# Set working directory
 WORKDIR /config
-
-# Expose ports (documentation only, actual ports set by docker-compose)
 EXPOSE 1984 8554 8555
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-	CMD wget --no-verbose --tries=1 --spider http://localhost:1984/api || exit 1
-
-# Switch to non-root user (commented out if devices require root)
-# Uncomment if you can run without root privileges
-# USER go2rtc:go2rtc
-
-# Use tini as init system to handle signals properly
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
-
-# Default command (passed to entrypoint script)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["go2rtc", "-config", "/config/go2rtc.yaml"]

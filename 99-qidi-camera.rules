@@ -1,5 +1,0 @@
-# Udev rule to restart go2rtc container when Jieli USB camera is connected
-# Install to /etc/udev/rules.d/99-qidi-camera.rules
-# Reload with: sudo udevadm control --reload-rules
-
-ACTION=="add", SUBSYSTEM=="video4linux", ATTRS{idVendor}=="1f3a", ATTRS{idProduct}=="1010", TAG+="systemd", ENV{SYSTEMD_WANTS}="qidi-camera-restart.service"

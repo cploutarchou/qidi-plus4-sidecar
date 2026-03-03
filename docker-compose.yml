@@ -1,29 +1,21 @@
 services:
   # go2rtc - WebRTC streaming with hardware acceleration
   go2rtc:
-    build:
-      context: ./go2rtc
-      dockerfile: Dockerfile.nvenc
-      args:
-        - GO2RTC_VERSION=1.9.4
-        - FFMPEG_VERSION=6.1
-    image: qidi/go2rtc-nvenc:latest
+    image: alexxit/go2rtc:latest
     container_name: qidi_go2rtc
     restart: unless-stopped
-    network_mode: host
-    runtime: nvidia
+    ports:
+      - "1984:1984"
+      - "8554:8554"
+      - "8555:8555"
+    networks:
+      - qidi_network
     devices:
-      - /dev/video0:/dev/video0
-      - /dev/dri:/dev/dri
+      - ${CAMERA_DEVICE:-/dev/video0}:/dev/video0
     volumes:
-      - /dev/v4l:/dev/v4l:ro
       - ./go2rtc/go2rtc.yaml:/config/go2rtc.yaml:ro
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility
       - TZ=${TZ:-UTC}
-    cap_add:
-      - SYS_ADMIN
     security_opt:
       - no-new-privileges:true
     healthcheck:
@@ -44,11 +36,6 @@ services:
       resources:
         limits:
           memory: 2G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu, video]
     logging:
       driver: "json-file"
       options:
@@ -123,6 +110,7 @@ services:
     environment:
       - PRINTER_IP=${PRINTER_IP:-192.168.68.35}
       - HOST_IP=${HOST_IP:-192.168.68.26}
+      - CAMERA_MODE=${CAMERA_MODE:-unknown}
       - TZ=${TZ:-UTC}
     entrypoint: /docker-entrypoint.sh
     security_opt:

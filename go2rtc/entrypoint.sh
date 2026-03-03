@@ -38,14 +38,8 @@ else
     echo -e "${YELLOW}  Hardware acceleration may not work${NC}"
 fi
 
-# Check for NVIDIA GPU
-if command -v nvidia-smi &> /dev/null; then
-    echo -e "${GREEN}✓ NVIDIA GPU detected${NC}"
-    nvidia-smi -L 2>/dev/null || echo "  (nvidia-smi found but failed to query)"
-else
-    echo -e "${YELLOW}⚠ Warning: nvidia-smi not available${NC}"
-    echo -e "${YELLOW}  NVENC hardware encoding may not work${NC}"
-fi
+# On Linux ARM boards, hardware encoding support depends on kernel/ffmpeg setup.
+# If /dev/dri is available, hardware acceleration may be used by ffmpeg codecs.
 
 # Verify config file
 if [ -f "/config/go2rtc.yaml" ]; then
