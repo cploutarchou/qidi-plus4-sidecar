@@ -1,49 +1,72 @@
 # QIDI Plus 4 Sidecar
 
-Docker services for your QIDI Plus 4 3D printer - Mainsail web interface, camera streaming, and monitoring.
+Complete Docker-based sidecar solution for your QIDI Plus 4 3D printer with Mainsail web interface, camera streaming, and monitoring.
 
-## What You Get
+## Features
 
-- **Mainsail** - Modern web UI for your printer (port 8080)
-- **Camera Streaming** - Live video feed with automatic detection
-- **Monitoring** - Metrics and AI failure detection (optional)
+- **🖥️ Mainsail** - Modern web UI for printer control (port 8080)
+- **📷 Camera Streaming** - Live video with automatic USB camera detection
+- **📊 Monitoring** - Metrics and AI-powered failure detection (optional)
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Camera Setup](#camera-setup)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [Commands Reference](#commands-reference)
+- [Support & Documentation](#support--documentation)
+- [License](#license)
+
+## Prerequisites
+
+- **Linux** (Raspberry Pi 4/5, Ubuntu, Debian, etc.) or **macOS**
+- **4GB RAM** minimum
+- **Docker** and **Docker Compose**
+- **Network access** - Printer and host on same network
+
+> **Windows users:** Use WSL2 (Windows Subsystem for Linux 2)
+
+## Installation
+
+### Initial Setup
+
+```bash
+# Clone and initialize
+make init
+
+# Create and configure environment
+nano .env
+# Required settings:
+# - PRINTER_IP: Your printer's local IP (e.g., 192.168.68.35)
+# - HOST_IP: Your computer's local IP (e.g., 192.168.68.65)
+```
 
 ## Quick Start
 
-### 1. First Time Setup
+### First Time
 
 ```bash
-# Create config files
-make init
-
-# Configure your printer
-nano .env
-# Update PRINTER_IP and HOST_IP
-
-# Start everything
-make up
+make up    # Start all services
+make ps    # Verify services are running
 ```
 
-### 2. Access Mainsail
+### Access Mainsail
 
-Open in your browser: **http://YOUR_HOST_IP:8080**
+Open **http://YOUR_HOST_IP:8080** in your browser
 
 Example: `http://192.168.68.65:8080`
 
-### 3. Daily Use
+### Daily Use
 
 ```bash
-# Start services
-make up
-
-# View status
-make ps
-
-# View logs
-make logs
-
-# Stop everything
-make down
+make up          # Start services
+make ps          # Check status
+make logs        # View logs
+make down        # Stop everything
+make restart     # Restart all services
 ```
 
 ## Camera Setup
@@ -101,7 +124,9 @@ EXTERNAL_WEBCAM_URL=http://192.168.1.100:8080/video
 make up
 ```
 
-## Configure Camera in Mainsail
+## Configuration
+
+### Camera Configuration in Mainsail
 
 1. Open Mainsail → **Settings** ⚙️ → **Webcams**
 2. Edit your webcam:
@@ -110,6 +135,20 @@ make up
 3. Save
 
 The camera feed should now appear in Mainsail!
+
+### Environment Variables
+
+Edit `.env` to customize your setup:
+
+```bash
+nano .env
+```
+
+**Key settings:**
+
+- `PRINTER_IP` - Your printer's IP address
+- `HOST_IP` - Your host computer's IP address
+- `EXTERNAL_WEBCAM_URL` - (Optional) URL to external camera stream
 
 ## Troubleshooting
 
@@ -121,7 +160,7 @@ Check camera status:
 curl http://localhost:8080/camera/status
 ```
 
-**Modes:**
+**Camera modes:**
 
 - `physical` - USB camera connected ✅
 - `external` - Using network camera URL ✅
@@ -134,48 +173,52 @@ curl http://localhost:8080/camera/status
 .\scripts\Manage-USBCamera.ps1 restart
 ```
 
-### Wrong IP or Port?
+### Wrong IP Configuration?
 
-Edit `.env` file:
+1. Verify your IPs are correct:
+
+```bash
+# Check printer IP
+ping 192.168.68.35
+
+# Check your host IP
+hostname -I  # Linux/Raspberry Pi
+ipconfig     # Windows
+ifconfig     # macOS
+```
+
+1. Update `.env`:
 
 ```bash
 nano .env
-
-# Update these lines
-PRINTER_IP=192.168.68.35    # Your printer's IP
-HOST_IP=192.168.68.65       # Your computer's IP
+# Update PRINTER_IP and HOST_IP
 ```
 
-Then restart:
+1. Restart services:
 
 ```bash
+make down
 make up
 ```
 
-## Useful Commands
+## Commands Reference
 
 ```bash
+make init        # Initialize configuration
+make up          # Start all services
+make down        # Stop all services
 make ps          # Show running services
 make logs        # View all logs
-make logs-go2rtc # View camera logs only
+make logs-go2rtc # View camera service logs only
 make restart     # Restart services
-make down        # Stop everything
 make doctor      # Run diagnostics
 ```
 
-## System Requirements
+## Support & Documentation
 
-- **Linux** (Raspberry Pi 4/5, Ubuntu, Debian, etc.)
-- **4GB RAM** minimum
-- **Docker** and **Docker Compose**
-
-**Note:** Windows users must use WSL2.
-
-## Support
-
-Check `docs/` folder for detailed guides:
-
-- **USB-CAMERA-SETUP.md** - Complete camera setup guide
+- **Getting Started:** See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)
+- **Camera Setup Guide:** See [docs/USB-CAMERA-SETUP.md](docs/USB-CAMERA-SETUP.md)
+- **Issues:** File an issue on GitHub
 
 ## License
 
