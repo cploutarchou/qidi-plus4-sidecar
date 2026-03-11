@@ -2,6 +2,8 @@
 
 Complete guide for setting up a USB camera with QIDI Plus 4 Sidecar.
 
+> Looking for all guides? See [Documentation](README.md).
+
 ## Linux / Raspberry Pi
 
 **It just works!** 🎉
@@ -171,14 +173,14 @@ You should see your camera feed!
 
 ### WSL2: Camera not showing `/dev/video*`
 
-**Solution 1: Restart everything**
+#### Solution 1: Restart everything
 
 ```powershell
 # PowerShell (Admin)
 .\scripts\Manage-USBCamera.ps1 restart
 ```
 
-**Solution 2: Check usbipd status**
+#### Solution 2: Check usbipd status
 
 ```powershell
 usbipd list
@@ -245,6 +247,7 @@ PRINTER_WEBCAM_URL=http://192.168.68.35:10088/webcam/?action=stream
 
 ## Need More Help?
 
-- Main documentation: [README.md](../README.md)
+- Documentation hub: [README.md](README.md)
+- Main project overview: [../README.md](../README.md)
 - Getting started: [GETTING-STARTED.md](GETTING-STARTED.md)
 - Issues: <https://github.com/cploutarchou/qidi-plus4-sidecar/issues>

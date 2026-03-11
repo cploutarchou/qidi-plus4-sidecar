@@ -2,6 +2,8 @@
 
 This guide will get you up and running in 5 minutes!
 
+> Looking for all guides? See [Documentation](README.md).
+
 ## What You Need
 
 - Computer running Linux (or WSL2 on Windows)
@@ -46,7 +48,7 @@ That's it! 🎉
 
 Open your browser and go to:
 
-```
+```text
 http://YOUR_HOST_IP:8080
 ```
 
@@ -70,7 +72,7 @@ usbipd list
 .\scripts\Manage-USBCamera.ps1 bind
 ```
 
-**Each time you start:
+**Each time you start:**
 
 ```powershell
 # In PowerShell (Admin)
@@ -160,8 +162,9 @@ Restart everything:
 
 ## Need More Help?
 
-- Full documentation: [README.md](../README.md)
-- Camera setup guide: [docs/USB-CAMERA-SETUP.md](USB-CAMERA-SETUP.md)
+- Documentation hub: [README.md](README.md)
+- Main project overview: [../README.md](../README.md)
+- Camera setup guide: [USB-CAMERA-SETUP.md](USB-CAMERA-SETUP.md)
 - Issues: <https://github.com/cploutarchou/qidi-plus4-sidecar/issues>
 
 ## What's Next?

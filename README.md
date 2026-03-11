@@ -216,6 +216,7 @@ make doctor      # Run diagnostics
 
 ## Support & Documentation
 
+- **Documentation Hub:** See [docs/README.md](docs/README.md)
 - **Getting Started:** See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)
 - **Camera Setup Guide:** See [docs/USB-CAMERA-SETUP.md](docs/USB-CAMERA-SETUP.md)
 - **Issues:** File an issue on GitHub
