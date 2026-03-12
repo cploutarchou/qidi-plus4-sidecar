@@ -1,9 +1,9 @@
 upstream moonraker {
-    server ${PRINTER_IP}:7125;
+    server ${PRINTER_IP}:${MOONRAKER_PORT:-7125};
 }
 
 upstream camera {
-    server ${HOST_IP}:1984;
+    server go2rtc:1984;
 }
 
 map $http_upgrade $connection_upgrade {
