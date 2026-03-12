@@ -5,13 +5,15 @@ services:
     container_name: qidi_go2rtc
     restart: unless-stopped
     ports:
-      - "1984:1984"
-      - "8554:8554"
-      - "8555:8555"
+      - "${GO2RTC_BIND_IP:-127.0.0.1}:1984:1984"
+      - "${GO2RTC_RTSP_BIND_IP:-127.0.0.1}:8554:8554"
+      - "${GO2RTC_WEBRTC_BIND_IP:-127.0.0.1}:8555:8555"
     networks:
       - qidi_network
-    devices:
-      - ${CAMERA_DEVICE:-/dev/video0}:/dev/video0
+    # Uncomment devices section below if using a USB camera with actual Raspberry Pi
+    # For development/testing without camera, leave commented out
+    # devices:
+    #   - ${CAMERA_DEVICE:-/dev/video0}:/dev/video0
     volumes:
       - ./go2rtc/go2rtc.yaml:/config/go2rtc.yaml:ro
     environment:
@@ -51,12 +53,12 @@ services:
     container_name: qidi_moonraker_exporter
     restart: unless-stopped
     ports:
-      - "9101:9101"
+      - "${EXPORTER_BIND_IP:-127.0.0.1}:9101:9101"
     networks:
       - qidi_network
     environment:
       - KLIPPER_EXPORTER_MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
-      - KLIPPER_EXPORTER_MOONRAKER_PORT=7125
+      - KLIPPER_EXPORTER_MOONRAKER_PORT=${MOONRAKER_PORT:-7125}
       - TZ=${TZ:-UTC}
     security_opt:
       - no-new-privileges:true
@@ -100,7 +102,7 @@ services:
     container_name: qidi_mainsail
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${MAINSAIL_BIND_IP:-0.0.0.0}:${MAINSAIL_PORT:-8080}:80"
     networks:
       - qidi_network
     volumes:
@@ -109,6 +111,7 @@ services:
       - ./docker/mainsail-entrypoint.sh:/docker-entrypoint.sh:ro
     environment:
       - PRINTER_IP=${PRINTER_IP:-192.168.68.35}
+      - MOONRAKER_PORT=${MOONRAKER_PORT:-7125}
       - HOST_IP=${HOST_IP:-192.168.68.26}
       - CAMERA_MODE=${CAMERA_MODE:-unknown}
       - TZ=${TZ:-UTC}
@@ -146,6 +149,80 @@ services:
       - "com.qidi.service=ui"
       - "com.qidi.description=Mainsail web interface for printer control"
 
+  # Public reverse proxy for Mainsail with optional Let's Encrypt support
+  public-nginx:
+    image: nginx:1.27-alpine
+    container_name: qidi_public_nginx
+    restart: unless-stopped
+    profiles:
+      - public
+    depends_on:
+      mainsail:
+        condition: service_healthy
+    ports:
+      - "${PUBLIC_HTTP_BIND_IP:-0.0.0.0}:${PUBLIC_HTTP_PORT:-80}:80"
+      - "${PUBLIC_HTTPS_BIND_IP:-0.0.0.0}:${PUBLIC_HTTPS_PORT:-443}:443"
+    networks:
+      - qidi_network
+    volumes:
+      - ./public/nginx/public-http.conf.template:/etc/nginx/templates/public-http.conf.template:ro
+      - ./public/nginx/public-tls.conf.template:/etc/nginx/templates/public-tls.conf.template:ro
+      - ./docker/public-nginx-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./public/certbot/www:/var/www/certbot:rw
+      - ./public/certbot/conf:/etc/letsencrypt:rw
+    environment:
+      - PUBLIC_DOMAIN=${PUBLIC_DOMAIN:-_}
+      - TZ=${TZ:-UTC}
+    entrypoint: /docker-entrypoint.sh
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=public-edge"
+      - "com.qidi.description=Public nginx reverse proxy with optional Let's Encrypt TLS"
+
+  # Ephemeral Certbot service used by make public-init-cert/public-renew
+  certbot:
+    image: certbot/certbot:latest
+    container_name: qidi_certbot
+    profiles:
+      - public
+    networks:
+      - qidi_network
+    volumes:
+      - ./public/certbot/www:/var/www/certbot:rw
+      - ./public/certbot/conf:/etc/letsencrypt:rw
+    environment:
+      - TZ=${TZ:-UTC}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.qidi.service=public-edge"
+      - "com.qidi.description=Certbot client for issuing and renewing public certificates"
+
   # Moonraker-Obico - AI failure detection for Klipper printers
   moonraker-obico:
     image: ghcr.io/thespaghettidetective/moonraker-obico:latest
@@ -159,7 +236,7 @@ services:
     environment:
       - TZ=${TZ:-UTC}
       - MOONRAKER_HOST=${PRINTER_IP:-192.168.68.35}
-      - MOONRAKER_PORT=7125
+      - MOONRAKER_PORT=${MOONRAKER_PORT:-7125}
       - OBICO_SERVER_URL=https://app.obico.io
     security_opt:
       - no-new-privileges:true
